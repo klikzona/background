@@ -1,61 +1,317 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Simple HTML</title>
-  <style>
-    :root {
-      --bg1: #00c6ff;
-      --bg2: #0072ff;
-    }
-    html, body {
-      height: 100%;
-      margin: 0;
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-    }
-    body {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: linear-gradient(135deg, var(--bg1), var(--bg2));
-      color: #fff;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-    }
-    .card {
-      background: rgba(255,255,255,0.08);
-      backdrop-filter: blur(6px);
-      padding: 2rem;
-      border-radius: 12px;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.25);
-      max-width: 720px;
-      text-align: center;
-    }
-    h1 {
-      margin: 0 0 .5rem;
-      font-size: clamp(1.25rem, 3vw, 2rem);
-    }
-    p {
-      margin: 0 0 1rem;
-      opacity: 0.95;
-    }
-    .button {
-      display: inline-block;
-      padding: .6rem 1rem;
-      border-radius: 8px;
-      background: #fff;
-      color: #08306b;
-      text-decoration: none;
-      font-weight: 600;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Photo Gallery</title>
+    <style>
+        :root {
+            --bg-color: #f5f5f5;
+            --text-color: #333;
+            --card-bg: #fff;
+            --card-shadow: rgba(0, 0, 0, 0.1);
+            --overlay-bg: rgba(0, 0, 0, 0.9);
+            --button-bg: #333;
+            --button-text: #fff;
+        }
+
+        .dark-mode {
+            --bg-color: #121212;
+            --text-color: #f5f5f5;
+            --card-bg: #1e1e1e;
+            --card-shadow: rgba(0, 0, 0, 0.3);
+            --overlay-bg: rgba(0, 0, 0, 0.95);
+            --button-bg: #f5f5f5;
+            --button-text: #333;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header, footer {
+            padding: 1rem;
+            text-align: center;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px var(--card-shadow);
+        }
+
+        footer {
+            margin-top: auto;
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+
+        .mode-toggle {
+            background-color: var(--button-bg);
+            color: var(--button-text);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .gallery {
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px var(--card-shadow);
+            cursor: pointer;
+            aspect-ratio: 4/3;
+        }
+
+        .card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .lightbox {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--overlay-bg);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .lightbox-content {
+            position: relative;
+            max-width: 90%;
+            max-height: 90%;
+        }
+
+        .lightbox img {
+            max-width: 100%;
+            max-height: 80vh;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .lightbox-nav {
+            position: absolute;
+            top: 50%;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            transform: translateY(-50%);
+        }
+
+        .lightbox-nav button {
+            background-color: var(--button-bg);
+            color: var(--button-text);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            margin: 0 1rem;
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background-color: var(--button-bg);
+            color: var(--button-text);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .gallery {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 1rem;
+                padding: 1rem;
+            }
+
+            .lightbox-nav button {
+                margin: 0 0.5rem;
+                width: 30px;
+                height: 30px;
+                font-size: 1rem;
+            }
+        }
+    </style>
 </head>
 <body>
-  <main class="card" role="main">
-    <h1>Simple HTML</h1>
-    <p>A minimal starter page with a pleasant background and centered content.</p>
-    <a class="button" href="#" onclick="alert('Hello — this is a simple HTML demo!'); return false">Click me</a>
-  </main>
+    <header>
+        <h1>Photo Gallery</h1>
+        <button class="mode-toggle" id="modeToggle">Dark Mode</button>
+    </header>
+
+    <main>
+        <div class="gallery" id="gallery"></div>
+    </main>
+
+    <footer>
+        © <span id="currentYear"></span> Dynamic Photo Gallery. All rights reserved.
+    </footer>
+
+    <div class="lightbox" id="lightbox">
+        <button class="lightbox-close" id="lightboxClose">×</button>
+        <div class="lightbox-content">
+            <img id="lightboxImage" src="" alt="">
+            <div class="lightbox-nav">
+                <button id="prevButton">‹</button>
+                <button id="nextButton">›</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set current year in footer
+            document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+            // Dark/light mode toggle
+            const modeToggle = document.getElementById('modeToggle');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const savedMode = localStorage.getItem('darkMode');
+
+            // Initialize mode based on preference or saved setting
+            if (savedMode === 'true' || (savedMode === null && prefersDark)) {
+                document.body.classList.add('dark-mode');
+                modeToggle.textContent = 'Light Mode';
+            }
+
+            modeToggle.addEventListener('click', function() {
+                document.body.classList.toggle('dark-mode');
+                const isDark = document.body.classList.contains('dark-mode');
+                localStorage.setItem('darkMode', isDark);
+                modeToggle.textContent = isDark ? 'Light Mode' : 'Dark Mode';
+            });
+
+            // Image data - in a real app, this would be fetched from a server
+            // Using Unsplash random images as placeholders
+            const images = Array.from({length: 20}, (_, i) => ({
+                id: i,
+                src: `https://source.unsplash.com/random/800x600/?nature,${i}`,
+                thumb: `https://source.unsplash.com/random/300x200/?nature,${i}`,
+                alt: `Nature image ${i + 1}`
+            }));
+
+            // Generate gallery
+            const gallery = document.getElementById('gallery');
+            
+            images.forEach(image => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.dataset.id = image.id;
+                
+                const img = document.createElement('img');
+                img.src = image.thumb;
+                img.loading = 'lazy';
+                img.alt = image.alt;
+                
+                card.appendChild(img);
+                gallery.appendChild(card);
+            });
+
+            // Lightbox functionality
+            const lightbox = document.getElementById('lightbox');
+            const lightboxImage = document.getElementById('lightboxImage');
+            const lightboxClose = document.getElementById('lightboxClose');
+            const prevButton = document.getElementById('prevButton');
+            const nextButton = document.getElementById('nextButton');
+            
+            let currentImageIndex = 0;
+
+            // Open lightbox when clicking on a card
+            gallery.addEventListener('click', function(e) {
+                const card = e.target.closest('.card');
+                if (!card) return;
+                
+                currentImageIndex = parseInt(card.dataset.id);
+                updateLightboxImage();
+                lightbox.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            });
+
+            // Close lightbox
+            lightboxClose.addEventListener('click', function() {
+                lightbox.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            });
+
+            // Navigate between images
+            prevButton.addEventListener('click', function(e) {
+                e.stopPropagation();
+                currentImageIndex = (currentImageIndex - 1 + images.length) % images.length;
+                updateLightboxImage();
+            });
+
+            nextButton.addEventListener('click', function(e) {
+                e.stopPropagation();
+                currentImageIndex = (currentImageIndex + 1) % images.length;
+                updateLightboxImage();
+            });
+
+            // Keyboard navigation
+            document.addEventListener('keydown', function(e) {
+                if (lightbox.style.display !== 'flex') return;
+                
+                if (e.key === 'Escape') {
+                    lightbox.style.display = 'none';
+                    document.body.style.overflow = 'auto';
+                } else if (e.key === 'ArrowLeft') {
+                    currentImageIndex = (currentImageIndex - 1 + images.length) % images.length;
+                    updateLightboxImage();
+                } else if (e.key === 'ArrowRight') {
+                    currentImageIndex = (currentImageIndex + 1) % images.length;
+                    updateLightboxImage();
+                }
+            });
+
+            // Update lightbox image
+            function updateLightboxImage() {
+                lightboxImage.src = images[currentImageIndex].src;
+                lightboxImage.alt = images[currentImageIndex].alt;
+            }
+
+            // Close lightbox when clicking outside image
+            lightbox.addEventListener('click', function(e) {
+                if (e.target === lightbox) {
+                    lightbox.style.display = 'none';
+                    document.body.style.overflow = 'auto';
+                }
+            });
+        });
+    </script>
 </body>
 </html>
